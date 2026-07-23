@@ -6,7 +6,7 @@ A simple three-tier app (frontend, backend API, database) deployed on AWS using 
  
 VPC with public and private subnets. Backend runs as a Flask API on ECS Fargate, behind an ALB. Database is RDS Postgres, private subnet only. Frontend is a static site on S3. DB credentials live in Secrets Manager, not in code. Logs and one alarm go to CloudWatch.
  
-See `docs/architecture.png` for the diagram.
+![Architecture Diagram](docs/architecture.png)
  
 ## Why these choices
  
