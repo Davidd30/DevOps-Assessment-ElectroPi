@@ -58,6 +58,8 @@ State is stored remotely in an S3 bucket, with locking. The bucket was created o
 ## Known issue: GitHub Actions was billing-locked
  
 My GitHub account got billing-locked partway through testing, so Actions could not run. I could not add a payment method in time. I ran the same steps (test, build, scan, push, deploy) manually on my machine with the same commands the workflow uses, and confirmed they work. The workflow file itself is unchanged and correct — it just wasn't executed by GitHub's hosted runner for this submission.
+
+![Error of Workflow](docs/Error of Running the Workflow.png)
  
 ## Trade-offs made because of the time limit
  
