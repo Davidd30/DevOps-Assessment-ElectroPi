@@ -15,7 +15,6 @@ variable "environment" {
 
 variable "container_image" {
   type        = string
-  description = "full ECR image URI with tag"
 }
 
 variable "container_port" {
