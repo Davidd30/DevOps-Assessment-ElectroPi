@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Electro-Pi</title>
+</head>
+<body>
+  <h1>Electro-Pi Demo</h1>
+  <p>Backend status: <span id="status">checking...</span></p>
+
+  <script>
+    const backendUrl = "http://electro-pi-dev-alb-2051675358.us-east-1.elb.amazonaws.com/health";
+
+    fetch(backendUrl)
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById("status").textContent = data.status;
+      })
+      .catch(() => {
+        document.getElementById("status").textContent = "unreachable";
+      });
+  </script>
+</body>
+</html>
