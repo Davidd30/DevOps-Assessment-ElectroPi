@@ -1,0 +1,80 @@
+name: build-test-deploy
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build-test-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v4
+
+      - name: setup python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: install dependencies
+        working-directory: app
+        run: pip install -r requirements.txt
+
+      - name: run tests
+        working-directory: app
+        run: |
+          pip install pytest
+          pytest
+
+      - name: configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: login to ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: build image
+        env:
+          ECR_REPOSITORY_URL: ${{ vars.ECR_REPOSITORY_URL }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -f app/Dockerfile -t $ECR_REPOSITORY_URL:$IMAGE_TAG .
+
+
+      #i added this to scan the image before pushing it, to check the critical vulnerabilities 
+      - name: scan image with trivy
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          image-ref: ${{ vars.ECR_REPOSITORY_URL }}:${{ github.sha }}
+          format: table
+          exit-code: 0
+          severity: CRITICAL,HIGH
+
+      - name: push image
+        env:
+          ECR_REPOSITORY_URL: ${{ vars.ECR_REPOSITORY_URL }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker push $ECR_REPOSITORY_URL:$IMAGE_TAG
+          docker tag $ECR_REPOSITORY_URL:$IMAGE_TAG $ECR_REPOSITORY_URL:latest
+          docker push $ECR_REPOSITORY_URL:latest
+
+      - name: terraform init
+        working-directory: infra
+        run: terraform init
+
+      - name: terraform apply
+        working-directory: infra
+        env:
+          ECR_REPOSITORY_URL: ${{ vars.ECR_REPOSITORY_URL }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          terraform apply -auto-approve \
+            -var="container_image=${ECR_REPOSITORY_URL}:${IMAGE_TAG}"
