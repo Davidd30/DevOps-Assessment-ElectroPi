@@ -108,3 +108,10 @@ module "compute" {
   ecs_security_group_id   = aws_security_group.ecs.id
   db_secret_arn           = module.database.db_secret_arn
 }
+
+module "frontend" {
+  source = "./modules/frontend"
+
+  project     = var.project
+  environment = var.environment
+}

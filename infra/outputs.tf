@@ -21,3 +21,7 @@ output "github_actions_role_arn" {
 output "ecr_repository_url" {
   value = aws_ecr_repository.backend.repository_url
 }
+
+output "frontend_url" {
+  value = "http://${module.frontend.website_endpoint}"
+}
