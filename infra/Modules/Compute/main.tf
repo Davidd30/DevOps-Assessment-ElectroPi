@@ -1,3 +1,10 @@
+locals {
+  common_tags = {
+    Project     = var.project
+    Environment = var.environment
+  }
+}
+
 #Cloudwatch for logs of ECS 
 resource "aws_cloudwatch_log_group" "app" {
   name              = "/ecs/${var.project}-${var.environment}"
@@ -174,4 +181,24 @@ resource "aws_ecs_service" "app" {
     Project     = var.project
     Environment = var.environment
   }
+}
+
+
+resource "aws_cloudwatch_metric_alarm" "high_cpu" {
+  alarm_name          = "${var.project}-${var.environment}-ecs-high-cpu"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods   = 2
+  metric_name         = "CPUUtilization"
+  namespace           = "AWS/ECS"
+  period              = 60
+  statistic           = "Average"
+  threshold           = 80
+
+  dimensions = {
+    ClusterName = aws_ecs_cluster.main.name
+    ServiceName = aws_ecs_service.app.name
+  }
+
+  alarm_description = "triggers if ecs cpu stays above 80% for 2 minutes"
+  tags              = local.common_tags
 }
